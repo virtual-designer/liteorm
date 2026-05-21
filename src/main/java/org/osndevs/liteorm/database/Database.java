@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class Database implements AutoCloseable {
@@ -41,7 +42,7 @@ public class Database implements AutoCloseable {
         connection = DriverManager.getConnection(finalUrl, username, password);
     }
 
-    public Database createGlobalInstance(String url) throws SQLException, URISyntaxException {
+    public static Database createGlobalInstance(String url) throws SQLException, URISyntaxException {
         globalInstance = new Database(url);
         return globalInstance;
     }
@@ -60,6 +61,17 @@ public class Database implements AutoCloseable {
 
     public Connection getConnection() {
         return connection;
+    }
+
+    @SafeVarargs
+    public final <T> boolean insert(T... models) throws SQLException {
+        try (PreparedStatement statement = getQueryBuilder().buildInsertStatement(models)) {
+            return statement.execute();
+        }
+        catch (Exception e) {
+            System.err.println(e);
+            return false;
+        }
     }
 
     @Override

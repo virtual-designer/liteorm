@@ -1,6 +1,11 @@
 package org.osndevs.liteorm.database;
 
-import org.osndevs.liteorm.models.*;
+import org.osndevs.liteorm.models.Column;
+import org.osndevs.liteorm.models.ColumnDescriptor;
+import org.osndevs.liteorm.models.ColumnType;
+import org.osndevs.liteorm.models.ModelDescriptor;
+import org.osndevs.liteorm.models.PrimaryKey;
+import org.osndevs.liteorm.models.Model;
 import org.osndevs.liteorm.utils.DatabaseUtils;
 
 import java.lang.annotation.Annotation;
@@ -102,25 +107,6 @@ public class QueryBuilder {
         }
 
         throw new RuntimeException("Invalid column type");
-    }
-
-    protected String getGetterName(String attribute) {
-        return "get" + attribute.substring(0, 1).toUpperCase() + attribute.substring(1);
-    }
-
-    protected String serialize() {
-        return "";
-    }
-
-    @SafeVarargs
-    public final <T> boolean insert(T... models) throws SQLException {
-        try (PreparedStatement statement = buildInsertStatement(models)) {
-            return statement.execute();
-        }
-        catch (Exception e) {
-            System.err.println(e);
-            return false;
-        }
     }
 
     @SafeVarargs
