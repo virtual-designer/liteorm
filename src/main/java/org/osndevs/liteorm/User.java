@@ -9,7 +9,7 @@ import org.osndevs.liteorm.models.PrimaryKey;
 public class User extends ActiveRecord {
     @Column
     @PrimaryKey
-    private long id;
+    private Long id;
 
     @Column
     private String name;
@@ -21,21 +21,29 @@ public class User extends ActiveRecord {
     private String password;
 
     @Column(actualName = "is_admin")
-    private boolean isAdministrator;
+    private Boolean isAdministrator;
 
-    public long getId() {
+    public User(Long id, String name, String username, String password, Boolean isAdministrator) {
+        this.id = id;
+        this.name = name;
+        this.username = username;
+        this.password = password;
+        this.isAdministrator = isAdministrator;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public boolean isAdministrator() {
+    public Boolean isAdministrator() {
         return isAdministrator;
     }
 
-    public void setAdministrator(boolean administrator) {
+    public void setAdministrator(Boolean administrator) {
         isAdministrator = administrator;
     }
 

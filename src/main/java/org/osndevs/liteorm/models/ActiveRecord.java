@@ -18,11 +18,12 @@ public abstract class ActiveRecord {
         return modelAnnotation;
     }
 
-    public boolean save(Database database) throws SQLException {
-        return database.insert(this);
+    public void save(Database database) throws SQLException {
+        // noinspection unchecked
+        database.insert((Class<Object>) (Object) this.getClass(), this).execute();
     }
 
-    public boolean save() throws SQLException {
-        return save(Database.getGlobalInstance());
+    public void save() throws SQLException {
+        save(Database.getGlobalInstance());
     }
 }

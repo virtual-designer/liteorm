@@ -1,10 +1,13 @@
 package org.osndevs.liteorm.database;
 
+import org.osndevs.liteorm.sql.InsertQuery;
+import org.osndevs.liteorm.sql.QueryBuilder;
+import org.osndevs.liteorm.sql.SelectQuery;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class Database implements AutoCloseable {
@@ -64,14 +67,12 @@ public class Database implements AutoCloseable {
     }
 
     @SafeVarargs
-    public final <T> boolean insert(T... models) throws SQLException {
-        try (PreparedStatement statement = getQueryBuilder().buildInsertStatement(models)) {
-            return statement.execute();
-        }
-        catch (Exception e) {
-            System.err.println(e);
-            return false;
-        }
+    public final <T> InsertQuery<T> insert(Class<T> clazz, T... models) {
+        return getQueryBuilder().buildInsertStatement(clazz, models);
+    }
+
+    public <T> SelectQuery<T> select(Class<T> clazz) {
+        return getQueryBuilder().buildSelectStatement(clazz);
     }
 
     @Override

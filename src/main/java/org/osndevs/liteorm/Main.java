@@ -8,12 +8,12 @@ public class Main {
         System.out.println("Table: " + DatabaseUtils.getTableNameFromModel(User.class));
 
         try (final var database = Database.createGlobalInstance("postgresql://postgres:root@localhost:5432/liteorm")) {
-            User user1 = new User();
-            user1.setName("Admin User 4");
-            user1.setUsername("root4");
-            user1.setPassword("1234");
-            user1.setAdministrator(true);
-            user1.save();
+            final var query = database.select(User.class);
+            final var users = database.select(User.class).getAll();
+
+            for (final var user : users) {
+                System.out.println("User #" + user.getId() + ": @" + user.getUsername());
+            }
         }
     }
 }
