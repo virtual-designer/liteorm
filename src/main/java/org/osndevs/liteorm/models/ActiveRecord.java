@@ -18,8 +18,8 @@ public abstract class ActiveRecord {
         return modelAnnotation;
     }
 
+    @SuppressWarnings("unchecked")
     public void save(Database database) throws SQLException {
-        // noinspection unchecked
         database.insert((Class<Object>) (Object) this.getClass(), this).execute();
     }
 

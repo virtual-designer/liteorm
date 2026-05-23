@@ -4,19 +4,19 @@ import org.osndevs.liteorm.database.Database;
 import org.osndevs.liteorm.models.ColumnType;
 import org.osndevs.liteorm.models.ModelDescriptor;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SelectQuery<T> extends Query {
-    Class<T> clazz;
-    ModelDescriptor<T> descriptor;
+public class SelectQuery<M> extends QueryWithConditions<SelectQuery<M>> {
+    Class<M> clazz;
+    ModelDescriptor<M> descriptor;
 
-    public SelectQuery(Database database, Class<T> clazz) {
+    public SelectQuery(Database database, Class<M> clazz) {
         super(database);
         this.clazz = clazz;
+        boundedValues = new ArrayList<>();
         descriptor = database.getQueryBuilder().getDescriptor(clazz);
         sql = "SELECT ";
 
@@ -33,17 +33,18 @@ public class SelectQuery<T> extends Query {
         sql += cols + " FROM " + descriptor.tableName;
     }
 
-    public List<T> getAll() throws SQLException {
+    public List<M> getAll() throws SQLException {
         return getAllInternal(Long.MAX_VALUE);
     }
 
-    public T getFirst() throws SQLException {
+    public M getFirst() throws SQLException {
         final var list = getAllInternal(1);
         return list.isEmpty() ? null : list.getFirst();
     }
 
-    private List<T> getAllInternal(long maxCount) throws SQLException {
-        List<T> results = new ArrayList<>();
+    private List<M> getAllInternal(long maxCount) throws SQLException {
+        List<M> results = new ArrayList<>();
+        database.logQuery(this);
 
         try (var statement = toStatement()) {
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -80,11 +81,5 @@ public class SelectQuery<T> extends Query {
         }
 
         return results;
-    }
-
-    @Override
-    public PreparedStatement toStatement() throws SQLException {
-        // noinspection SqlSourceToSinkFlow
-        return database.getConnection().prepareStatement(sql);
     }
 }

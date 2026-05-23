@@ -1,6 +1,7 @@
 package org.osndevs.liteorm.database;
 
 import org.osndevs.liteorm.sql.InsertQuery;
+import org.osndevs.liteorm.sql.Query;
 import org.osndevs.liteorm.sql.QueryBuilder;
 import org.osndevs.liteorm.sql.SelectQuery;
 
@@ -78,5 +79,25 @@ public class Database implements AutoCloseable {
     @Override
     public void close() throws Exception {
         connection.close();
+    }
+
+    public void logQuery(Query<?> query) {
+        final var sql = query.toSQL();
+        System.out.printf("LiteORM: QUERY: %s | PARAMETERS: [", sql);
+        var initialIteration = true;
+
+        for (final var boundedValue : query.getBoundedValues()) {
+            if (!initialIteration) {
+                System.out.print(", ");
+            }
+            else {
+                initialIteration = false;
+            }
+
+            System.out.printf("p%d=(%s)", boundedValue.index(), boundedValue.value().getClass().getName());
+            System.out.print(boundedValue.value());
+        }
+
+        System.out.print("]\n");
     }
 }

@@ -6,21 +6,16 @@ import org.osndevs.liteorm.models.ModelDescriptor;
 import org.osndevs.liteorm.models.PrimaryKey;
 
 import java.lang.annotation.Annotation;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
 
-public class InsertQuery<T> extends Query {
-    List<InsertQueryValue> boundValues;
-
-    public InsertQuery(Database database, Class<T> clazz, T[] models) {
+public class InsertQuery<M> extends Query<InsertQuery<M>> {
+    public InsertQuery(Database database, Class<M> clazz, M[] models) {
         super(database);
         this.sql = "";
         processModels(clazz, models);
     }
 
-    private void processModels(Class<T> clazz, T[] models) {
+    private void processModels(Class<M> clazz, M[] models) {
         if (models.length == 0) {
             throw new RuntimeException("No model to operate on");
         }
@@ -28,7 +23,7 @@ public class InsertQuery<T> extends Query {
         QueryBuilder queryBuilder = database.getQueryBuilder();
 
         @SuppressWarnings("unchecked")
-        ModelDescriptor<T> modelDescriptor = queryBuilder.getDescriptor((Class<T>) models[0].getClass());
+        ModelDescriptor<M> modelDescriptor = queryBuilder.getDescriptor((Class<M>) models[0].getClass());
         String query = "insert into " + modelDescriptor.tableName;
         StringBuilder columns = new StringBuilder();
         boolean ignorePrimaryKey = false;
@@ -82,8 +77,8 @@ public class InsertQuery<T> extends Query {
 
         query += "values " + values;
 
-        boundValues = new ArrayList<>();
-        int index = 1;
+        boundedValues = new ArrayList<>();
+        boundedValueIndex = 1;
 
         for (var model : models) {
             for (ColumnDescriptor columnDescriptor : modelDescriptor.columnDescriptors) {
@@ -95,7 +90,7 @@ public class InsertQuery<T> extends Query {
 
                 try {
                     Object value = columnDescriptor.field().get(model);
-                    boundValues.add(new InsertQueryValue(index++, columnDescriptor, value));
+                    boundedValues.add(new BoundedValue(boundedValueIndex++, columnDescriptor.type(), value));
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
@@ -105,31 +100,8 @@ public class InsertQuery<T> extends Query {
         sql = query;
     }
 
-    public InsertQuery<T> onConflictDoNothing() {
+    public InsertQuery<M> onConflictDoNothing() {
         sql += " ON CONFLICT DO NOTHING ";
         return this;
-    }
-
-    public InsertQuery<T> append(String sql) {
-        this.sql += sql;
-        return this;
-    }
-
-    @Override
-    public PreparedStatement toStatement() throws SQLException {
-        // noinspection SqlSourceToSinkFlow
-        PreparedStatement statement = database.getConnection().prepareStatement(sql + ";");
-
-        for (InsertQueryValue boundValue : boundValues) {
-            switch (boundValue.getType()) {
-                case STRING, TEXT -> statement.setString(boundValue.index(), (String) boundValue.value());
-                case INTEGER -> statement.setInt(boundValue.index(), (Integer) boundValue.value());
-                case LONG -> statement.setLong(boundValue.index(), (Long) boundValue.value());
-                case BOOLEAN -> statement.setBoolean(boundValue.index(), (Boolean) boundValue.value());
-                case DEFAULT -> throw new RuntimeException("Encountered DEFAULT type when building prepared statement");
-            }
-        }
-
-        return statement;
     }
 }
